@@ -32,6 +32,7 @@ public class ViewRequestActivity extends AppCompatActivity {
     List<String> requests;
     List<Double> requestLatitudes;
     List<Double> requestLongitudes;
+    List<String> usernames;
     ArrayAdapter adapter;
     LocationManager locationManager;
     LocationListener locationListener;
@@ -47,6 +48,7 @@ public class ViewRequestActivity extends AppCompatActivity {
         requests = new ArrayList<>();
         requestLatitudes = new ArrayList<>();
         requestLongitudes = new ArrayList<>();
+        usernames = new ArrayList<>();
 
         requests.add("Getting nearby requests ...");
         adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, requests);
@@ -56,12 +58,13 @@ public class ViewRequestActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if (Build.VERSION.SDK_INT < 23 || ActivityCompat.checkSelfPermission(ViewRequestActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                    if (requestLatitudes.size() > i && lastKnownLocation != null) {
+                    if (requestLatitudes.size() > i && lastKnownLocation != null && usernames.size() > 0) {
                         Intent intent = new Intent(getApplicationContext(), DriverLocationActivity.class);
                         intent.putExtra("requestLatitude", requestLatitudes.get(i));
                         intent.putExtra("requestLongitude", requestLongitudes.get(i));
                         intent.putExtra("driverLatitude", lastKnownLocation.getLatitude());
                         intent.putExtra("driverLongitude", lastKnownLocation.getLongitude());
+                        intent.putExtra("username", usernames.get(i));
                         startActivity(intent);
                     }
                 }
@@ -131,6 +134,7 @@ public class ViewRequestActivity extends AppCompatActivity {
             final ParseGeoPoint geoPointLocation = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
 
             query.whereNear("location", geoPointLocation);
+            query.whereDoesNotExist("driverUsername");
 
             query.setLimit(10);
 
@@ -152,6 +156,7 @@ public class ViewRequestActivity extends AppCompatActivity {
 
                                     requestLatitudes.add(requestLocation.getLatitude());
                                     requestLongitudes.add(requestLocation.getLongitude());
+                                    usernames.add(object.getString("username"));
                                 }
                             }
                         } else {
