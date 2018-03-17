@@ -2,6 +2,7 @@ package com.codeko.userclone;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,6 +13,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -27,6 +30,8 @@ import java.util.List;
 public class ViewRequestActivity extends AppCompatActivity {
     ListView lvRequests;
     List<String> requests;
+    List<Double> requestLatitudes;
+    List<Double> requestLongitudes;
     ArrayAdapter adapter;
     LocationManager locationManager;
     LocationListener locationListener;
@@ -40,9 +45,28 @@ public class ViewRequestActivity extends AppCompatActivity {
 
         lvRequests = findViewById(R.id.lvRequest);
         requests = new ArrayList<>();
+        requestLatitudes = new ArrayList<>();
+        requestLongitudes = new ArrayList<>();
+
         requests.add("Getting nearby requests ...");
         adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, requests);
         lvRequests.setAdapter(adapter);
+        lvRequests.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (Build.VERSION.SDK_INT < 23 || ActivityCompat.checkSelfPermission(ViewRequestActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (requestLatitudes.size() > i && lastKnownLocation != null) {
+                        Intent intent = new Intent(getApplicationContext(), DriverLocationActivity.class);
+                        intent.putExtra("requestLatitude", requestLatitudes.get(i));
+                        intent.putExtra("requestLongitude", requestLongitudes.get(i));
+                        intent.putExtra("driverLatitude", lastKnownLocation.getLatitude());
+                        intent.putExtra("driverLongitude", lastKnownLocation.getLongitude());
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
 
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
@@ -68,7 +92,7 @@ public class ViewRequestActivity extends AppCompatActivity {
         };
 
         if (Build.VERSION.SDK_INT < 23) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
             }
         } else {
@@ -90,7 +114,7 @@ public class ViewRequestActivity extends AppCompatActivity {
 
         if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
                 }
                 Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -101,8 +125,6 @@ public class ViewRequestActivity extends AppCompatActivity {
 
     private void updateRequests(Location location) {
         if (location != null) {
-
-            requests.clear();
 
             ParseQuery<ParseObject> query = ParseQuery.getQuery("Request");
 
@@ -116,11 +138,21 @@ public class ViewRequestActivity extends AppCompatActivity {
                 @Override
                 public void done(List<ParseObject> objects, ParseException e) {
                     if (e == null) {
+                        requests.clear();
+                        requestLatitudes.clear();
+                        requestLongitudes.clear();
+
                         if (objects.size() > 0) {
                             for (ParseObject object : objects) {
-                                Double distanceInMiles = geoPointLocation.distanceInMilesTo((ParseGeoPoint) object.get("location"));
-                                Double distanceInDP = Double.valueOf(Math.round(distanceInMiles * 10) / 10);
-                                requests.add(String.valueOf(distanceInDP) + " miles");
+                                ParseGeoPoint requestLocation = (ParseGeoPoint) object.get("location");
+                                if (requestLocation != null) {
+                                    Double distanceInMiles = geoPointLocation.distanceInMilesTo(requestLocation);
+                                    Double distanceInDP = Double.valueOf(Math.round(distanceInMiles * 10) / 10);
+                                    requests.add(String.valueOf(distanceInDP) + " miles");
+
+                                    requestLatitudes.add(requestLocation.getLatitude());
+                                    requestLongitudes.add(requestLocation.getLongitude());
+                                }
                             }
                         } else {
                             requests.add("No active requests nearby");
