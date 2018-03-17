@@ -26,7 +26,6 @@ public class MyApplication extends Application {
                 .server("http://ec2-54-191-135-160.us-west-2.compute.amazonaws.com:80/parse/")
                 .build()
         );
-        ParseUser.enableAutomaticUser();
 
         ParseACL defaultACL = new ParseACL();
         defaultACL.setPublicReadAccess(true);
