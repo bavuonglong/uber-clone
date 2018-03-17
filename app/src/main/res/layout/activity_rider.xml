@@ -27,5 +27,15 @@
         android:onClick="callAnUber"
         android:text="Call An Uber" />
 
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/btnCallUber"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="23dp"
+        android:onClick="logout"
+        android:text="Logout" />
+
 
 </RelativeLayout>
