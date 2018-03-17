@@ -20,10 +20,17 @@ public class MyApplication extends Application {
         Parse.enableLocalDatastore(this);
 
         // Add your initialization code here
-        Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
+        /*Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
                 .applicationId("a54a21f1b0fe509aaa4b6ed3805fddbc5e21facd")
                 .clientKey("f11ca4c5a8a3bb0d85d0a0d72696911b87a156aa")
                 .server("http://ec2-54-191-135-160.us-west-2.compute.amazonaws.com:80/parse/")
+                .build()
+        );*/
+
+        Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
+                .applicationId("instagrambt8HxR7SFA&209l")
+                .clientKey("instagramVEfzoSRF9j1Y0xp")
+                .server("https://instagramandroid-codeko.herokuapp.com/parse/")
                 .build()
         );
 

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">User Clone</string>
+    <string name="title_activity_rider">Map</string>
 </resources>
