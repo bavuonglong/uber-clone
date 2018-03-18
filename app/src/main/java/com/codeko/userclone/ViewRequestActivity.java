@@ -23,6 +23,7 @@ import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +77,9 @@ public class ViewRequestActivity extends AppCompatActivity {
             @Override
             public void onLocationChanged(Location location) {
                 updateRequests(location);
+
+                ParseUser.getCurrentUser().put("location", new ParseGeoPoint(location.getLatitude(), location.getLongitude()));
+                ParseUser.getCurrentUser().saveInBackground();
             }
 
             @Override
